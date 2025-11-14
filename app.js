@@ -21,7 +21,7 @@ async function fetchActivityLog() {
     }
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/activity-log`, {
+        const response = await fetch(`${BACKEND_URL}/api/reports`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

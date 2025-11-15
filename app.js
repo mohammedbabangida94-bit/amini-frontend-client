@@ -327,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Logout Button
     if (logoutButton) {
+        
         logoutButton.addEventListener('click', () => {
             localStorage.removeItem(TOKEN_KEY); 
             fetchProfileData(); // Go back to login screen

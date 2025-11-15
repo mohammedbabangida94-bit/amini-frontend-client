@@ -140,7 +140,7 @@ async function fetchProfileData() {
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
     // This variable will hold our coordinates, MUST be outside the event listeners
-    let userLocation = null; 
+    let userLocation = {lat: null, long: null}; 
 
     // Check if we are already logged in on page load
     fetchProfileData(); 

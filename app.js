@@ -13,7 +13,7 @@ async function fetchActivityLog() {
     const activityLogDiv = document.getElementById('activity-log');
     const token = localStorage.getItem(TOKEN_KEY);
 
-    if (!activityLogDiv) return; // Safety check
+    if (!activityLogDiv) return;
 
     if (!token) {
         activityLogDiv.innerHTML = '<li>Please log in to view your activity log.</li>';
@@ -25,7 +25,6 @@ async function fetchActivityLog() {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                // CRITICAL FIX: Use 'x-auth-token' to match your existing backend logic
                 'x-auth-token': token 
             }
         });
@@ -45,10 +44,10 @@ async function fetchActivityLog() {
     }
 }
 
-// Function to render the reports list in the HTML
+// Function to render the reports list in the HTML (UPDATED FOR CLEAN FORMATTING)
 function displayReports(reports) {
     const activityLogDiv = document.getElementById('activity-log');
-    if (!activityLogDiv) return; // Safety check
+    if (!activityLogDiv) return;
 
     activityLogDiv.innerHTML = ''; // Clear existing content
 
@@ -62,13 +61,27 @@ function displayReports(reports) {
 
     reports.forEach(report => {
         const li = document.createElement('li');
-        const date = new Date(report.date).toLocaleDateString();
-        const time = new Date(report.date).toLocaleTimeString();
+        
+        // --- IMPROVED DATE FORMATTING ---
+        const reportDate = new Date(report.date);
+        const formattedDate = reportDate.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true 
+        });
+        
+        // --- LOCATION FORMATTING ---
+        const locationHTML = report.location && report.location.lat 
+            ? `<strong>Location:</strong> Lat ${report.location.lat.toFixed(4)}, Long ${report.location.long.toFixed(4)}` 
+            : '<strong>Location:</strong> N/A (GPS not available)';
         
         li.innerHTML = `
-            <strong>Sent:</strong> ${date} at ${time}<br>
+            <strong>Sent:</strong> ${formattedDate}<br>
             <strong>Message:</strong> ${report.message}<br>
-            ${report.location && report.location.lat ? `<strong>Location:</strong> Lat ${report.location.lat.toFixed(4)}, Long ${report.location.long.toFixed(4)}` : '<strong>Location:</strong> N/A'}
+            ${locationHTML}
         `;
         ul.appendChild(li);
     });
@@ -104,12 +117,10 @@ async function fetchProfileData() {
             document.getElementById('main-app').classList.remove('hidden');
 
             // Update the welcome message
-            const email = data.message.split(', ')[1]; 
+            const email = data.user.email; // ASSUMING your profile route returns { user: { id, email } }
             welcomeMessage.textContent = `Welcome, ${email}!`;
             
-            // --- CRITICAL FIX: CALL THE ACTIVITY LOG FETCHER ---
             fetchActivityLog(); 
-            // -----------------------------------------------------
 
         } else {
             // Token was bad (e.g., expired)
@@ -126,21 +137,44 @@ async function fetchProfileData() {
 // 2. PAGE LOAD LISTENER (MAIN CODE)
 // =================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // This variable will hold our coordinates
+    // This variable will hold our coordinates, MUST be outside the event listeners
     let userLocation = null; 
 
     // Check if we are already logged in on page load
     fetchProfileData(); 
 
-    // --- Registration Form ---
+    // --- ELEMENT LOOKUPS ---
     const registerForm = document.getElementById('register-form');
+    const loginForm = document.getElementById('login-form');
+    const showRegisterLink = document.getElementById('show-register-link');
+    const showLoginLink = document.getElementById('show-login-link');
+    const loginMessage = document.getElementById('login-message-area');
+    const registerMessage = document.getElementById('message-area');
+    const locationButton = document.getElementById('get-location-btn');
+    const locationDisplay = document.getElementById('location-display');
+    const sendMessageButton = document.getElementById('send-message-btn');
+    const messageInput = document.getElementById('secure-message-input');
+    const statusLog = document.getElementById('status-log');
+    const logoutButton = document.getElementById('logout-btn');
+    
+    // Password Toggle Variables (CRITICAL: Define them here!)
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+
+    // -----------------------------------------------------------
+    // --- A. FORM SUBMISSION HANDLERS ---
+    // -----------------------------------------------------------
+
+    // --- Registration Form ---
     if (registerForm) {
         registerForm.addEventListener('submit', async (event) => {
             event.preventDefault(); 
             const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const messageArea = document.getElementById('message-area');
-
+            // NOTE: The password input ID in HTML is 'passwordInput', not 'register-password'
+            const password = passwordInput.value; 
+            
             try {
                 const response = await fetch(`${BACKEND_URL}/register`, {
                     method: 'POST',
@@ -150,28 +184,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    messageArea.textContent = 'Registration successful! You can now log in.';
-                    messageArea.style.color = 'green';
+                    registerMessage.textContent = 'Registration successful! You can now log in.';
+                    registerMessage.style.color = 'green';
                 } else {
-                    messageArea.textContent = `Error: ${data.message}`;
-                    messageArea.style.color = 'red';
+                    registerMessage.textContent = `Error: ${data.message}`;
+                    registerMessage.style.color = 'red';
                 }
             } catch (error) {
-                messageArea.textContent = 'A network error occurred. Please try again.';
-                messageArea.style.color = 'red';
+                registerMessage.textContent = 'A network error occurred. Please try again.';
+                registerMessage.style.color = 'red';
             }
         });
     }
 
     // --- Login Form ---
-    const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const messageArea = document.getElementById('login-message-area');
-
+            const password = document.getElementById('login-password').value; // Using the login form's specific ID
+            
             try {
                 const response = await fetch(`${BACKEND_URL}/login`, {
                     method: 'POST',
@@ -182,49 +214,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     localStorage.setItem(TOKEN_KEY, data.token); // Save the token
-                    fetchProfileData(); // Fetch profile (this shows the app and the activity log)
+                    fetchProfileData(); // Show app screen
                 } else {
-                    messageArea.textContent = `Error: ${data.message}`;
-                    messageArea.style.color = 'red';
+                    loginMessage.textContent = `Error: ${data.message}`;
+                    loginMessage.style.color = 'red';
                 }
             } catch (error) {
-                messageArea.textContent = 'A network error occurred. Please try again.';
-                messageArea.style.color = 'red';
+                loginMessage.textContent = 'A network error occurred. Please try again.';
+                loginMessage.style.color = 'red';
             }
         });
     }
 
-    // --- Update Location Button ---
-    const locationButton = document.getElementById('get-location-btn');
-    const locationDisplay = document.getElementById('location-display');
-    if (locationButton) {
-        locationButton.addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                locationDisplay.textContent = 'Finding your location...';
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLocation = { // Save the coordinates
-                            lat: position.coords.latitude,
-                            long: position.coords.longitude
-                        };
-                        locationDisplay.textContent = `Location updated: ${userLocation.lat.toFixed(4)}, ${userLocation.long.toFixed(4)}`;
-                        locationDisplay.style.color = 'green';
-                    },
-                    (error) => {
-                        locationDisplay.textContent = 'Unable to get location.';
-                        locationDisplay.style.color = 'red';
-                    }
-                );
-            } else {
-                locationDisplay.textContent = 'Geolocation is not available.';
-            }
-        });
-    }
-
-    // --- Send Secure Message Button ---
-    const sendMessageButton = document.getElementById('send-message-btn');
-    const messageInput = document.getElementById('secure-message-input');
-    const statusLog = document.getElementById('status-log');
+    // --- Send Secure Message Button (SOS) ---
     if (sendMessageButton) {
         sendMessageButton.addEventListener('click', async () => {
             const message = messageInput.value;
@@ -248,58 +250,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
                 if (response.ok) {
-                    statusLog.innerHTML += `<p>Status: ${data.message}</p>`;
+                    statusLog.innerHTML += `<p style="color: green;">Status: ${data.message}</p>`;
                     messageInput.value = ''; // Clear the text box
-                    
-                    // After successfully sending a report, refresh the log!
                     fetchActivityLog(); 
                 } else {
-                    statusLog.innerHTML += `<p>Error: ${data.message}</p>`;
+                    statusLog.innerHTML += `<p style="color: red;">Error: ${data.message}</p>`;
                 }
             } catch (error) {
-                statusLog.innerHTML += `<p>Network error. Could not send report.</p>`;
+                statusLog.innerHTML += `<p style="color: red;">Network error. Could not send report.</p>`;
             }
         });
     }
 
-    // --- Logout Button ---
-    const logoutButton = document.getElementById('logout-btn');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-            localStorage.removeItem(TOKEN_KEY); // Clear the token
-            // Refresh the page or call fetchProfileData to go back to login screen
-            fetchProfileData();
-        });
-    }
-});
+    // -----------------------------------------------------------
+    // --- B. UTILITY HANDLERS ---
+    // -----------------------------------------------------------
 
-// =================================================================
-// 3. FORM TOGGLE LOGIC
-// =================================================================
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const showRegisterLink = document.getElementById('show-register-link');
-    const showLoginLink = document.getElementById('show-login-link');
-    const loginMessage = document.getElementById('login-message-area');
-    const registerMessage = document.getElementById('message-area');
-
-
+    // 1. Form Switching Handlers
     if (showRegisterLink && showLoginLink) {
         showRegisterLink.addEventListener('click', (event) => {
-            event.preventDefault(); // Stop the link from jumping the page
+            event.preventDefault(); 
             if(loginForm) loginForm.classList.add('hidden');
             if(registerForm) registerForm.classList.remove('hidden');
-            // Also clear any old error messages
             if(loginMessage) loginMessage.textContent = ''; 
         });
 
         showLoginLink.addEventListener('click', (event) => {
-            event.preventDefault(); // Stop the link from jumping the page
+            event.preventDefault(); 
             if(loginForm) loginForm.classList.remove('hidden');
             if(registerForm) registerForm.classList.add('hidden');
-            // Also clear any old error messages
-            if(registerMessage) registerMessage.textContent = '';
+            if(registerMessage) registerMessage.textContent = ''; 
+        });
+    }
+
+    // 2. Password Toggle Listener (The UX Fix)
+    if (passwordToggle && passwordInput && toggleIcon) {
+        passwordToggle.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            
+            if (isPassword) {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️';
+            }
+        });
+    }
+    
+    // 3. Update Location Button
+    if (locationButton) {
+        locationButton.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                locationDisplay.textContent = 'Finding your location...';
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLocation = { // Save the coordinates
+                            lat: position.coords.latitude,
+                            long: position.coords.longitude
+                        };
+                        locationDisplay.textContent = `Location updated: ${userLocation.lat.toFixed(4)}, ${userLocation.long.toFixed(4)}`;
+                        locationDisplay.style.color = 'green';
+                    },
+                    (error) => {
+                        locationDisplay.textContent = 'Unable to get location. Check permissions.';
+                        locationDisplay.style.color = 'red';
+                    }
+                );
+            } else {
+                locationDisplay.textContent = 'Geolocation is not available on this browser.';
+            }
+        });
+    }
+
+    // 4. Logout Button
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem(TOKEN_KEY); 
+            fetchProfileData(); // Go back to login screen
         });
     }
 });

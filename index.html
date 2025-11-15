@@ -40,11 +40,16 @@
           <label for="register-email">Email</label>
           <input type="email" id="register-email" required>
         </div>
-        <div>
-          <label for="register-password">Password</label>
-          <input type="password" id="register-password" minlength="6" required>
+        <div class="input-container">
+          <label for="password">Password</label>
+          <div style="position: relative;"></div>
+          <input type="password" id="passwordInput" name="password" placeholder="Enter your password">
+        
+        <button type="button" id="passwordToggle" style="position: absolute; /* ... other styles ... */"></button>
+            <span id="toggleIcon">👁️</span>
+        </button>
         </div>
-        <button type="submit">Register</button>
+      </div>
         <p id="message-area"></p>
         <p>
           Already have an account? 
@@ -124,6 +129,24 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
+
+    // Place this JavaScript code in your frontend logic file
+
+    
+    if (passwordToggle && passwordInput && toggleIcon) {
+        passwordToggle.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            
+            // Toggle the type
+            if (isPassword) {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = '🙈'; // Change icon to 'hidden'
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = '👁️'; // Change icon to 'visible'
+            }
+        });
+    }
   </script>
 </body>
 

@@ -71,7 +71,9 @@ function displayReports(reports) {
             hour: 'numeric',
             minute: '2-digit',
             hour12: true 
-        });
+        }).replace(',', ' at'); // <<< ADD THIS .replace(',', ' at') to fix the formatting issue
+// ...
+
         
         // --- LOCATION FORMATTING ---
         const locationHTML = report.location && report.location.lat 

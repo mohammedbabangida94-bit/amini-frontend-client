@@ -10,95 +10,68 @@
  <body>
   <div class="app-container">
     <div class="app-branding">
-      <h1>Amini- Personal Security App</h1>
-      <p>Your secure peace of mind.</p>
+        <h1>Amini- Personal Security App</h1>
+        <p>Your secure peace of mind.</p>
     </div>
-    <div id="register-screen">
-      
-      <form id="login-form">
-        <h1>Login to Amini</h1>
-        <div>
-          <label for="login-email">Email</label>
-          <input type="email" id="login-email" required>
-        </div>
-        <div>
-          <label for="login-password">Password</label>
-          <input type="password" id="login-password" required>
-        </div>
-        <button type="submit">Login</button>
-        <p id="login-message-area"></p>
-        <p>
-          Need an account? 
-          <a href="#" id="show-register-link">Sign Up</a> 
-        </p>
-      </form>
-      
-      <form id="register-form" class="hidden">
-        <h1>Register for Amini</h1>
-        <p>Create your account to get started.</p>
-        <div>
-          <label for="register-email">Email</label>
-          <input type="email" id="register-email" required>
-        </div>
-        <div class="input-container">
-          <label for="password">Password</label>
-          <div style="position: relative;"></div>
-          <input type="password" id="passwordInput" name="password" placeholder="Enter your password">
+
+    <section id="register-screen">
         
-        <button type="button" id="passwordToggle" style="position: absolute; /* ... other styles ... */"></button>
-            <span id="toggleIcon">👁️</span>
-        </button>
-        </div>
-      </div>
-        <p id="message-area"></p>
-        <p>
-          Already have an account? 
-          <a href="#" id="show-login-link">Log In</a>
-        </p>
-      </form>
-      
-    </div> <div id="main-app" class="hidden">
-      <header>
-        <h2 id="welcome-message">Welcome, User!</h2>
+        <form id="login-form">
+            <h2>Login to Amini</h2>
+            <div>
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div>
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">Login</button>
+            <p id="login-message-area"></p>
+            <p>
+                Need an account? 
+                <a href="#" id="show-register-link">Sign Up</a> 
+            </p>
+        </form>
+        
+        <form id="register-form" class="hidden">
+            <h2>Register for Amini</h2>
+            <p>Create your account to get started.</p>
+            <div>
+                <label for="register-email">Email</label>
+                <input type="email" id="register-email" required>
+            </div>
+            
+            <div class="input-container">
+                <label for="passwordInput">Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="passwordInput" name="password" placeholder="Enter your password" required>
+                    <button type="button" id="passwordToggle" 
+                        style="position: absolute; top: 50%; right: 5px; transform: translateY(-50%); border: none; background: transparent; cursor: pointer;">
+                        <span id="toggleIcon">👁️</span>
+                    </button>
+                </div>
+            </div>
+            <button type="submit">Register</button>
+            <p id="message-area"></p>
+            <p>
+                Already have an account? 
+                <a href="#" id="show-login-link">Log In</a>
+            </p>
+        </form>
+        
+    </section> 
+    <section id="main-app" class="hidden">
+        
+        <h2 id="welcome-message">Welcome!</h2>
         <button id="logout-btn">Logout</button>
-      </header>
-      
-      <main>
-        <div class="feature-card sos-card">
-          <h3>Emergency Alert</h3>
-          <button id="sos-btn">SOS</button>
-          <p>Press and hold for 3 seconds</p>
-        </div>
         
-        <div class="feature-card">
-          <h3>Your Location</h3>
-          <p id="location-display">Location will appear here...</p>
-          <button id="get-location-btn">Update Location</button>
-        </div>
-        
-        <div class="feature-card">
-          <h3>Emergency Contacts</h3>
-          <ul id="contact-list">
-            <li>Police (911)</li>
-            <li>Ambulance (112)</li>
-          </ul>
-          <div class="input-group">
-            <input type="text" id="contact-input" placeholder="Add contact (e.g., Mom)">
-            <button id="add-contact-btn">Add</button>
-          </div>
-        </div>
-        
-        <div class="feature-card">
-          <h3>Secure Message</h3>
-          <textarea id="secure-message-input" placeholder="Type a secure message..."></textarea>
-          <button id="send-message-btn">Send Securely</button>
-        </div>
-        
-        <div class="feature-card">
-          <h3>Activity Log</h3>
-          <div id="activity-log">   
-          <p>Loading reports...</p>
-          </div>
+        <h3>Activity Log</h3>
+        <div id="activity-log">
+            </div>
+
+    </section>
+    </div>
           <div id="status-log"></div>
             <p>App initialized.</p>
           </div>

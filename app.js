@@ -317,6 +317,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     (error) => {
                         locationDisplay.textContent = 'Unable to get location. Check permissions.';
                         locationDisplay.style.color = 'red';
+
+                        },
+                // --- ADDED GEOLOCATION OPTIONS ---
+                {
+                    enableHighAccuracy: true, // Request the most accurate position (might take longer)
+                    timeout: 5000,            // CRITICAL: Stop searching after 5 seconds (5000ms)
+                    maximumAge: 0             // Don't use cached result
                     }
                 );
             } else {
